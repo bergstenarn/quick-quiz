@@ -1,7 +1,5 @@
 const question = document.getElementById("question");
 const choices = Array.from(document.getElementsByClassName("choice-text"));
-// const choices2 = document.querySelectorAll(".choice-text");
-// const questionCounterText = document.getElementById("questionCounter");
 const progressText = document.getElementById("progressText");
 const progressBarFull = document.getElementById("progressBarFull");
 const scoreText = document.getElementById("score");
@@ -14,13 +12,29 @@ let availableQuestions = [];
 
 let questions = [];
 
-fetch("questions.json")
+fetch(
+  "https://opentdb.com/api.php?amount=10&difficulty=easy&type=multiple&encode=base64"
+)
   .then((res) => {
     return res.json();
   })
   .then((loadedQuestions) => {
-    console.log(loadedQuestions);
-    questions = loadedQuestions;
+    questions = loadedQuestions.results.map((loadedQuestion) => {
+      const formattedQuestion = {
+        question: atob(loadedQuestion.question),
+      };
+      const answerChoices = [...loadedQuestion.incorrect_answers];
+      formattedQuestion.answer = Math.floor(Math.random() * 3) + 1;
+      answerChoices.splice(
+        formattedQuestion.answer - 1,
+        0,
+        loadedQuestion.correct_answer
+      );
+      answerChoices.forEach((choice, index) => {
+        formattedQuestion["choice" + (index + 1)] = atob(choice);
+      });
+      return formattedQuestion;
+    });
     startGame();
   })
   .catch((err) => {
